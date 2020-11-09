@@ -1,10 +1,10 @@
 ﻿#if OPENGL
-	#define SV_POSITION POSITION
-	#define VS_SHADERMODEL vs_3_0
-	#define PS_SHADERMODEL ps_3_0
+#define SV_POSITION POSITION
+#define VS_SHADERMODEL vs_3_0
+#define PS_SHADERMODEL ps_3_0
 #else
-	#define VS_SHADERMODEL vs_4_0_level_9_1
-	#define PS_SHADERMODEL ps_4_0_level_9_1
+#define VS_SHADERMODEL vs_4_0_level_9_1
+#define PS_SHADERMODEL ps_4_0_level_9_1
 #endif
 
 static const int kernelRadius = 5;
@@ -33,14 +33,14 @@ float3 LightTwoColor;
 
 struct VertexShaderInput
 {
-	float4 Position : POSITION0;
-	float4 Color : COLOR0;
+    float4 Position : POSITION0;
+    float4 Color : COLOR0;
     float2 TextureCoordinate : TEXCOORD0;
 };
 
 struct VertexShaderOutput
 {
-	float4 Position : SV_POSITION;
+    float4 Position : SV_POSITION;
     float4 Color : COLOR0;
     float2 TextureCoordinate : TEXCOORD1;
 };
@@ -59,10 +59,14 @@ float Time = 0;
 
 VertexShaderOutput MainVS(in VertexShaderInput input)
 {
-	VertexShaderOutput output = (VertexShaderOutput)0;
+    VertexShaderOutput output = (VertexShaderOutput) 0;
+
+    float3 normalizedPosition = normalize(input.Position.xyz) * 10.0;
+    float4 posicionEsfera = float4(normalizedPosition, input.Position.w);
+    float4 posicionFinal = lerp(posicionEsfera, input.Position, (sin(Time) + 1.0) * 0.5);
 
 	// Project position
-    output.Position = mul(input.Position, WorldViewProjection);
+    output.Position = mul(posicionFinal, WorldViewProjection);
 
 	// Propagate texture coordinates
     output.TextureCoordinate = input.TextureCoordinate;
@@ -75,7 +79,7 @@ VertexShaderOutput MainVS(in VertexShaderInput input)
 
 float4 MainPS(VertexShaderOutput input) : COLOR
 {
-    return tex2D(textureSampler, input.TextureCoordinate);
+    return lerp(float4(0, 0, 1, 1), tex2D(textureSampler, input.TextureCoordinate), (sin(Time) + 1.0) * 0.5);
 }
 
 
@@ -123,11 +127,11 @@ float4 PostProcessPS(PostProcessingVertexShaderOutput input) : COLOR
 
 technique BasicShader
 {
-	pass P0
-	{
-		VertexShader = compile VS_SHADERMODEL MainVS();
-		PixelShader = compile PS_SHADERMODEL MainPS();
-	}
+    pass P0
+    {
+        VertexShader = compile VS_SHADERMODEL MainVS();
+        PixelShader = compile PS_SHADERMODEL MainPS();
+    }
 };
 
 
