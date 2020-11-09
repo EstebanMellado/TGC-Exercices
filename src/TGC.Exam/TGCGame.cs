@@ -13,11 +13,21 @@ namespace TGC.Exam
     /// </summary>
     public class TGCGame : Game
     {
+        private const float LAVA_ROTATION_SPEED = -1f;
+        private const float WATER_ROTATION_SPEED = -1f;
+        private const float ROCK_ROTATION_SPEED = -1f;
+        private const int ROCK_WATER_DISTANCE = 20;
+        private const int WATER_LAVA_DISTANCE = 40;
+
+
         public const string ContentFolder3D = "Models/";
         public const string ContentFolderEffect = "Effects/";
         public const string ContentFolderTextures = "Textures/";
 
         private const bool LightingEnabled = true;
+        private float LavaRotation;
+        private float WaterRotation;
+        private float RockRotation;
 
         private GraphicsDeviceManager Graphics { get; set; }
 
@@ -158,14 +168,36 @@ namespace TGC.Exam
                 Effect.Parameters["LightOnePosition"]?.SetValue(LightOnePosition);
                 Effect.Parameters["LightTwoPosition"]?.SetValue(LightTwoPosition);
             }
-            
+
             // Capturar Input teclado
             if (Keyboard.GetState().IsKeyDown(Keys.Escape))
                 //Salgo del juego.
                 Exit();
 
 
+            Ejercicio1(gameTime);
+
+
             base.Update(gameTime);
+        }
+
+        private void Ejercicio1(GameTime gameTime)
+        {
+            var elapsedTime = (float)gameTime.ElapsedGameTime.TotalSeconds;
+            LavaRotation += LAVA_ROTATION_SPEED * elapsedTime;
+
+            LavaSphereWorld = Matrix.CreateRotationY(LavaRotation);
+
+            WaterRotation += WATER_ROTATION_SPEED * elapsedTime;
+            WaterSphereWorld = Matrix.CreateRotationY(WaterRotation)
+                                * Matrix.CreateTranslation(WATER_LAVA_DISTANCE, 0, 0)
+                                * LavaSphereWorld;
+
+            RockRotation += ROCK_ROTATION_SPEED * elapsedTime;
+            RockSphereWorld = Matrix.CreateScale(new Vector3(0.5f, 0.5f, 0.5f))
+                                * Matrix.CreateRotationY(RockRotation)
+                                * Matrix.CreateTranslation(ROCK_WATER_DISTANCE, 0, 0)
+                                * WaterSphereWorld;
         }
 
         /// <summary>
@@ -186,7 +218,7 @@ namespace TGC.Exam
 
             DrawRobot();
 
-            if(LightingEnabled)
+            if (LightingEnabled)
             {
                 LightCube.Draw(Matrix.CreateTranslation(LightOnePosition), Camera.View, Camera.Projection, Color.Red);
                 LightCube.Draw(Matrix.CreateTranslation(LightTwoPosition), Camera.View, Camera.Projection, Color.Blue);
@@ -199,7 +231,7 @@ namespace TGC.Exam
             Effect.Parameters["ModelTexture"].SetValue(RenderTarget);
             FullScreenQuad.Draw(Effect);
 
-            
+
 
             base.Draw(gameTime);
         }
