@@ -157,6 +157,8 @@ namespace TGC.Exam
                 LightTwoPosition = new Vector3(-MathF.Sin(timer) * 20f, 0f, MathF.Cos(timer) * 20f);
                 Effect.Parameters["LightOnePosition"]?.SetValue(LightOnePosition);
                 Effect.Parameters["LightTwoPosition"]?.SetValue(LightTwoPosition);
+                Effect.Parameters["Width"]?.SetValue(GraphicsDevice.Viewport.Width);
+                Effect.Parameters["Height"]?.SetValue(GraphicsDevice.Viewport.Height);
             }
             
             // Capturar Input teclado

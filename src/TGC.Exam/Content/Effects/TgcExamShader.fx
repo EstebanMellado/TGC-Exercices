@@ -110,10 +110,24 @@ PostProcessingVertexShaderOutput PostProcessVS(in PostProcessingVertexShaderInpu
 }
 
 
-
+int Width = 0;
+int Height = 0;
 float4 PostProcessPS(PostProcessingVertexShaderOutput input) : COLOR
 {
-    return tex2D(textureSampler, input.TextureCoordinate);
+    float x = floor(Width * input.TextureCoordinate.x);
+    float y = floor(Height * input.TextureCoordinate.y);
+    float factor = 1.0 - (x % 6 <= 1 || y % 6 <= 1);
+
+    float distancia = distance(input.TextureCoordinate, float2(0.5, 0.5));
+
+    // option 1
+    //return float4(distancia, distancia, distancia, 1);
+    // option 2
+    //return lerp(tex2D(textureSampler, input.TextureCoordinate), float4(0, 0, 0, 1), distancia * 1.5);
+    // option 3
+    return tex2D(textureSampler, input.TextureCoordinate) * saturate(1.0 - distancia * 1.5)
+        * factor
+        * (float4(0, 1, 0, 1) * 0.5f);
 }
 
 
