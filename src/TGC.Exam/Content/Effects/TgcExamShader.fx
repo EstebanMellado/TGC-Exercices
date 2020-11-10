@@ -59,7 +59,9 @@ float Time = 0;
 
 VertexShaderOutput MainVS(in VertexShaderInput input)
 {
-	VertexShaderOutput output = (VertexShaderOutput)0;
+    VertexShaderOutput output = (VertexShaderOutput) 0;
+
+    input.Position.x += cos(input.Position.y + Time * 5.0) * 2.0;
 
 	// Project position
     output.Position = mul(input.Position, WorldViewProjection);
