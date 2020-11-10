@@ -110,9 +110,14 @@ PostProcessingVertexShaderOutput PostProcessVS(in PostProcessingVertexShaderInpu
 }
 
 
-
 float4 PostProcessPS(PostProcessingVertexShaderOutput input) : COLOR
 {
+    const int PIXELATED_RADIUS = 64;
+    
+    input.TextureCoordinate *= float2(PIXELATED_RADIUS, PIXELATED_RADIUS);
+    input.TextureCoordinate = round(input.TextureCoordinate);
+    input.TextureCoordinate /= float2(PIXELATED_RADIUS, PIXELATED_RADIUS);
+    
     return tex2D(textureSampler, input.TextureCoordinate);
 }
 
