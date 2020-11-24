@@ -43,6 +43,7 @@ struct VertexShaderOutput
 	float4 Position : SV_POSITION;
     float4 Color : COLOR0;
     float2 TextureCoordinate : TEXCOORD1;
+    float4 MeshPosition : TEXCOORD2;
 };
 
 texture ModelTexture;
@@ -60,6 +61,8 @@ float Time = 0;
 VertexShaderOutput MainVS(in VertexShaderInput input)
 {
 	VertexShaderOutput output = (VertexShaderOutput)0;
+    
+    output.MeshPosition = input.Position;
 
 	// Project position
     output.Position = mul(input.Position, WorldViewProjection);
@@ -73,9 +76,26 @@ VertexShaderOutput MainVS(in VertexShaderInput input)
     return output;
 }
 
+float minY = 0;
+float maxY = 0;
+
 float4 MainPS(VertexShaderOutput input) : COLOR
 {
-    return tex2D(textureSampler, input.TextureCoordinate);
+    float4 textureColor = tex2D(textureSampler, input.TextureCoordinate);
+    
+    float y = input.MeshPosition.y;
+    
+    float scaledTime = Time * 0.5 + sin(input.MeshPosition.x + Time * 50.0) * 0.05;
+    
+    float tiempoFrac = saturate(frac(scaledTime) * 2.0) + 0.025;
+    float range = lerp(minY, maxY, tiempoFrac);
+    float range2 = lerp(minY, maxY, tiempoFrac - 0.025);
+    
+    textureColor.a = lerp(textureColor.a, 0.1, step(range, y));
+    
+    float cyan = step(range2, y);
+    
+    return lerp(textureColor, float4(0, 1, 1, textureColor.a), cyan);
 }
 
 
@@ -92,6 +112,7 @@ struct PostProcessingVertexShaderOutput
 {
     float4 Position : SV_POSITION;
     float2 TextureCoordinate : TEXCOORD1;
+    float4 ScreenPosition : TEXCOORD2;
 };
 
 
@@ -102,6 +123,8 @@ PostProcessingVertexShaderOutput PostProcessVS(in PostProcessingVertexShaderInpu
 
 	// Propagate position
     output.Position = input.Position;
+    
+    output.ScreenPosition = input.Position;
 
 	// Propagate texture coordinates
     output.TextureCoordinate = input.TextureCoordinate;
@@ -110,10 +133,27 @@ PostProcessingVertexShaderOutput PostProcessVS(in PostProcessingVertexShaderInpu
 }
 
 
+float2 rotate2D(float2 position, float angle)
+{
+    position = mul(float2x2(cos(angle), -sin(angle),
+                            sin(angle), cos(angle)), position);
+    return position;
+}
+
 
 float4 PostProcessPS(PostProcessingVertexShaderOutput input) : COLOR
 {
-    return tex2D(textureSampler, input.TextureCoordinate);
+    float2 position = input.ScreenPosition;
+    
+    //position *= lerp(-1.0, 1.0, step(position.x, 1.5));
+    float2 cellNumber = floor(position);
+    
+    position *= -1.0;
+    position.x *= lerp(-1.0, 1.0, cellNumber.x % 2 == 0);
+    
+    position = frac(position);
+    
+    return tex2D(textureSampler, position);
 }
 
 
@@ -139,9 +179,6 @@ technique PostProcessing
         PixelShader = compile PS_SHADERMODEL PostProcessPS();
     }
 }
-
-
-
 
 
 

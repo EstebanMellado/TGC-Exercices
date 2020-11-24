@@ -149,21 +149,27 @@ namespace TGC.Exam
             // Logica de actualizacion
             Camera.Update(gameTime);
             Effect.Parameters["CameraPosition"]?.SetValue(Camera.Position);
+            float timer = (float)gameTime.TotalGameTime.TotalSeconds;
 
             if (LightingEnabled)
             {
-                float timer = (float)gameTime.TotalGameTime.TotalSeconds;
                 LightOnePosition = new Vector3(MathF.Cos(timer) * 20f, 0f, MathF.Sin(timer) * 20f);
                 LightTwoPosition = new Vector3(-MathF.Sin(timer) * 20f, 0f, MathF.Cos(timer) * 20f);
                 Effect.Parameters["LightOnePosition"]?.SetValue(LightOnePosition);
                 Effect.Parameters["LightTwoPosition"]?.SetValue(LightTwoPosition);
             }
-            
+
+            Effect.Parameters["Time"]?.SetValue(timer);
+
+
             // Capturar Input teclado
             if (Keyboard.GetState().IsKeyDown(Keys.Escape))
                 //Salgo del juego.
                 Exit();
 
+            LavaSphereWorld = Matrix.CreateRotationX(1f * timer) * Matrix.CreateRotationY(0.70710678118f) * Matrix.CreateTranslation(0.0f, 15.0f, 0.0f);
+
+            WaterSphereWorld = Matrix.CreateTranslation(0.0f, 15.0f, 0.0f) * LavaSphereWorld;
 
             base.Update(gameTime);
         }
@@ -186,7 +192,7 @@ namespace TGC.Exam
 
             DrawRobot();
 
-            if(LightingEnabled)
+            if (LightingEnabled)
             {
                 LightCube.Draw(Matrix.CreateTranslation(LightOnePosition), Camera.View, Camera.Projection, Color.Red);
                 LightCube.Draw(Matrix.CreateTranslation(LightTwoPosition), Camera.View, Camera.Projection, Color.Blue);
@@ -199,7 +205,7 @@ namespace TGC.Exam
             Effect.Parameters["ModelTexture"].SetValue(RenderTarget);
             FullScreenQuad.Draw(Effect);
 
-            
+
 
             base.Draw(gameTime);
         }
@@ -219,6 +225,8 @@ namespace TGC.Exam
                 Effect.Parameters["InverseTransposeWorld"]?.SetValue(Matrix.Invert(Matrix.Transpose(world)));
                 mesh.Draw();
             }
+            Effect.Parameters["minY"]?.SetValue(-44.43015f);
+            Effect.Parameters["maxY"]?.SetValue(88.7983551f);
         }
 
         /// <summary>
