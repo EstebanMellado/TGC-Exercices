@@ -1,10 +1,10 @@
 ﻿#if OPENGL
-	#define SV_POSITION POSITION
-	#define VS_SHADERMODEL vs_3_0
-	#define PS_SHADERMODEL ps_3_0
+#define SV_POSITION POSITION
+#define VS_SHADERMODEL vs_3_0
+#define PS_SHADERMODEL ps_3_0
 #else
-	#define VS_SHADERMODEL vs_4_0_level_9_1
-	#define PS_SHADERMODEL ps_4_0_level_9_1
+#define VS_SHADERMODEL vs_4_0_level_9_1
+#define PS_SHADERMODEL ps_4_0_level_9_1
 #endif
 
 static const int kernelRadius = 5;
@@ -33,16 +33,21 @@ float3 LightTwoColor;
 
 struct VertexShaderInput
 {
-	float4 Position : POSITION0;
-	float4 Color : COLOR0;
+    float4 Position : POSITION0;
+    float4 Color : COLOR0;
     float2 TextureCoordinate : TEXCOORD0;
+    float3 Normal : NORMAL0;
 };
 
 struct VertexShaderOutput
 {
-	float4 Position : SV_POSITION;
+    float4 Position : SV_POSITION;
     float4 Color : COLOR0;
-    float2 TextureCoordinate : TEXCOORD1;
+    float2 TextureCoordinate : TEXCOORD0;
+    float4 MeshPosition : TEXCOORD1;
+    float3 Normal : TEXCOORD2;
+    float4 WorldPosition : TEXCOORD3;
+    float4 ScreenPosition : TEXCOORD4;
 };
 
 texture ModelTexture;
@@ -56,26 +61,46 @@ sampler2D textureSampler = sampler_state
 };
 
 float Time = 0;
+float minY = 0;
+float maxY = 0;
 
 VertexShaderOutput MainVS(in VertexShaderInput input)
 {
-	VertexShaderOutput output = (VertexShaderOutput)0;
-
+    VertexShaderOutput output = (VertexShaderOutput) 0;
+	
+    output.MeshPosition = input.Position;
+	
 	// Project position
     output.Position = mul(input.Position, WorldViewProjection);
-
+	
 	// Propagate texture coordinates
     output.TextureCoordinate = input.TextureCoordinate;
 
+    output.ScreenPosition = output.Position;
+    
 	// Propagate color by vertex
     output.Color = input.Color;
 
+    output.Normal = input.Normal;
+    
+    output.WorldPosition = mul(input.Position, World);
+    
     return output;
 }
 
 float4 MainPS(VertexShaderOutput input) : COLOR
 {
-    return tex2D(textureSampler, input.TextureCoordinate);
+    float4 textureColor = tex2D(textureSampler, input.TextureCoordinate);
+    
+    float y = input.MeshPosition.y;
+    
+    float offset = saturate(frac(y) * 2.0) - 0.5;
+    float range = offset * (maxY - minY) + minY;
+    
+    if (step(range, 0.5))
+        discard;
+    
+    return textureColor;
 }
 
 
@@ -123,11 +148,11 @@ float4 PostProcessPS(PostProcessingVertexShaderOutput input) : COLOR
 
 technique BasicShader
 {
-	pass P0
-	{
-		VertexShader = compile VS_SHADERMODEL MainVS();
-		PixelShader = compile PS_SHADERMODEL MainPS();
-	}
+    pass P0
+    {
+        VertexShader = compile VS_SHADERMODEL MainVS();
+        PixelShader = compile PS_SHADERMODEL MainPS();
+    }
 };
 
 

@@ -157,6 +157,7 @@ namespace TGC.Exam
                 LightTwoPosition = new Vector3(-MathF.Sin(timer) * 20f, 0f, MathF.Cos(timer) * 20f);
                 Effect.Parameters["LightOnePosition"]?.SetValue(LightOnePosition);
                 Effect.Parameters["LightTwoPosition"]?.SetValue(LightTwoPosition);
+                //Effect.Parameters["Time"]?.SetValue(timer);
             }
             
             // Capturar Input teclado
@@ -219,6 +220,9 @@ namespace TGC.Exam
                 Effect.Parameters["InverseTransposeWorld"]?.SetValue(Matrix.Invert(Matrix.Transpose(world)));
                 mesh.Draw();
             }
+            Effect.Parameters["minY"]?.SetValue(-44.43015f);
+            Effect.Parameters["maxY"]?.SetValue(88.7983551f);
+
         }
 
         /// <summary>
