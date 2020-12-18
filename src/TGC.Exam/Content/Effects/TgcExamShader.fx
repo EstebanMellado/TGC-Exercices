@@ -59,10 +59,14 @@ float Time = 0;
 
 VertexShaderOutput MainVS(in VertexShaderInput input)
 {
-	VertexShaderOutput output = (VertexShaderOutput)0;
+    VertexShaderOutput output = (VertexShaderOutput) 0;
+    
+    float3 normalizedPosition = normalize(input.Position.xyz) * 100.0;
+    float4 posicionEsfera = float4(normalizedPosition, input.Position.w);
+    float4 posicionFinal = lerp(posicionEsfera, input.Position, (sin(Time) + 1.0) * 0.5);
 
 	// Project position
-    output.Position = mul(input.Position, WorldViewProjection);
+    output.Position = mul(posicionFinal, WorldViewProjection);
 
 	// Propagate texture coordinates
     output.TextureCoordinate = input.TextureCoordinate;
@@ -76,6 +80,7 @@ VertexShaderOutput MainVS(in VertexShaderInput input)
 float4 MainPS(VertexShaderOutput input) : COLOR
 {
     return tex2D(textureSampler, input.TextureCoordinate);
+
 }
 
 
